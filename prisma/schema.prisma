@@ -39,12 +39,12 @@ model Pet {
     id                        String   @id @default(uuid())
     name                      String
     about                     String?
-    age                       Int
-    size                      Int
+    age                       String
+    size                      String
     requirements_for_adoption String[]
-    energy_level              Int
-    dependency_level          Int
-    ambient                   Int
+    energy_level              String
+    dependency_level          String
+    ambient                   String
     created_at                DateTime @default(now())
     updated_at                DateTime @updatedAt
 

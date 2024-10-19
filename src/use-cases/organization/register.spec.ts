@@ -1,20 +1,24 @@
 import { it, describe, expect } from 'vitest'
-import { RegisterOrganizationUseCase } from './register'
+import { OrganizationRegisterUseCase } from './register'
 import { compare } from 'bcryptjs'
 import { InMemoryOrganizationsRepository } from '@/repositories/in-memory/in-memory-organizations-repository'
-import { OrganizationAlreadyExistsError } from './errors/organization-already-exists-error'
+import { OrganizationAlreadyExistsError } from '../errors/organization-already-exists-error'
+import { beforeEach } from 'node:test'
 
-describe('Register Use Case', () => {
+let organizationsRepository: InMemoryOrganizationsRepository
+let sut: OrganizationRegisterUseCase
+
+describe('Organization Register Use Case', () => {
+	beforeEach(() => {
+		organizationsRepository = new InMemoryOrganizationsRepository()
+		sut = new OrganizationRegisterUseCase(organizationsRepository)
+	})
+
 	it('should be able to register a new organization', async () => {
-		const organizationsRepository = new InMemoryOrganizationsRepository()
-		const registerUseCase = new RegisterOrganizationUseCase(
-			organizationsRepository
-		)
-
-		const { organization } = await registerUseCase.handle({
-			owner: 'Guilherme Vitória',
-			email: 'guivitoria@hotmail.com',
-			cep: '12345678',
+		const { organization } = await sut.execute({
+			owner: 'John Doe',
+			email: 'teste@gmail.com',
+			cep: '123456',
 			city: 'Salvador',
 			state: 'BA',
 			street: 'Rua Teste',
@@ -29,11 +33,9 @@ describe('Register Use Case', () => {
 
 	it('should hash user password upon registration', async () => {
 		const organizationsRepository = new InMemoryOrganizationsRepository()
-		const registerUseCase = new RegisterOrganizationUseCase(
-			organizationsRepository
-		)
+		const sut = new OrganizationRegisterUseCase(organizationsRepository)
 
-		const { organization } = await registerUseCase.handle({
+		const { organization } = await sut.execute({
 			owner: 'Guilherme Vitória',
 			email: 'guivitoria@hotmail.com',
 			cep: '12345678',
@@ -56,11 +58,9 @@ describe('Register Use Case', () => {
 
 	it('should not be able to register with same email twitch', async () => {
 		const organizationsRepository = new InMemoryOrganizationsRepository()
-		const registerUseCase = new RegisterOrganizationUseCase(
-			organizationsRepository
-		)
+		const sut = new OrganizationRegisterUseCase(organizationsRepository)
 
-		await registerUseCase.handle({
+		await sut.execute({
 			owner: 'Guilherme Vitória',
 			email: 'guivitoria@hotmail.com',
 			cep: '12345678',
@@ -74,7 +74,7 @@ describe('Register Use Case', () => {
 		})
 
 		await expect(() =>
-			registerUseCase.handle({
+			sut.execute({
 				owner: 'Guilherme Vitória',
 				email: 'guivitoria@hotmail.com',
 				cep: '12345678',

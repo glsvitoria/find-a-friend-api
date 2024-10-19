@@ -26,4 +26,12 @@ export class InMemoryOrganizationsRepository
 
 		return organization || null
 	}
+
+	async findById(id: string): Promise<Organization | null> {
+		const organization = this.organizations.find(
+			(organization) => organization.id === id
+		)
+
+		return organization || null
+	}
 }

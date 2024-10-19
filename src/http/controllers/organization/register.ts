@@ -1,15 +1,30 @@
-import { PrismaOrganizationsRepository } from '@/repositories/prisma/prisma-organizations-repository'
 import { OrganizationAlreadyExistsError } from '@/use-cases/errors/organization-already-exists-error'
-import { RegisterOrganizationUseCase } from '@/use-cases/register'
+import { makeOrganizationRegisterUseCase } from '@/use-cases/factories/make-organization-register-use-case copy'
 import { FastifyReply, FastifyRequest } from 'fastify'
 import { z } from 'zod'
 
 export async function register(request: FastifyRequest, reply: FastifyReply) {
 	const registerBodySchema = z.object({
-		owner: z.string(),
-		email: z.string().email(),
-		cep: z.string().length(8),
-		city: z.string(),
+		owner: z.string({
+			message: 'O campo de responsável é obrigatório.',
+		}),
+		email: z
+			.string({
+				message: 'O campo de email é obrigatório.',
+			})
+			.email({
+				message: 'E-mail inválido.',
+			}),
+		cep: z
+			.string({
+				message: 'O campo de CEP é obrigatório.',
+			})
+			.length(8, {
+				message: 'O campo de CEP deve ter 8 dígitos.',
+			}),
+		city: z.string({
+			message: 'O campo de cidade é obrigatório.',
+		}),
 		state: z.string().length(2),
 		street: z.string(),
 		number: z.string(),
@@ -21,11 +36,9 @@ export async function register(request: FastifyRequest, reply: FastifyReply) {
 	const data = registerBodySchema.parse(request.body)
 
 	try {
-		const organizationsRepository = new PrismaOrganizationsRepository()
-		const registerUseCase = new RegisterOrganizationUseCase(
-			organizationsRepository
-		)
-		await registerUseCase.handle(data)
+		const registerUseCase = makeOrganizationRegisterUseCase()
+
+		await registerUseCase.execute(data)
 	} catch (err) {
 		if (err instanceof OrganizationAlreadyExistsError) {
 			return reply.status(409).send({
