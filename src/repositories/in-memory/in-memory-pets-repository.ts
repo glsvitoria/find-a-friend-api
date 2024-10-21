@@ -1,23 +1,45 @@
 import { Organization, Pet, Prisma } from '@prisma/client'
-import { OrganizationsRepository } from '../organizations-repository'
 import { PetsRepository, PetsRepositorySearchRequest } from '../pets-repository'
 
 export class InMemoryPetsRepository implements PetsRepository {
 	public organizations: Organization[] = []
 	public pets: Pet[] = []
 
-    create(data: Prisma.PetCreateInput): Promise<Pet> {
-        const pet = {
-            
-        }
-    }
+	async create(data: Prisma.PetCreateInput) {
+		const pet = {
+			id: 'pet-1',
+			...data,
+			created_at: new Date(),
+			updated_at: new Date(),
+		}
 
+		this.pets.push(pet)
 
-    findById(id: string): Promise<Pet | null> {
-        
-    }
+		return pet
+	}
 
-    search(data: PetsRepositorySearchRequest): Promise<Pet[]> {
-        
-    }
+	async findById(id: string) {
+		const pet = this.pets.find((pet) => pet.id === id)
+
+		return pet || null
+	}
+
+	async search(data: PetsRepositorySearchRequest) {
+		const pets = this.pets.filter((pet) => {
+			const organization = this.organizations.find(
+				(organization) => organization.id === pet.organization_id
+			)
+
+			return (
+				pet.age === data.age &&
+				pet.dependency_level === data.dependency_level &&
+				pet.energy_level === data.energy_level &&
+				pet.size === data.size &&
+				organization?.city === data.city &&
+				organization?.state === data.state
+			)
+		})
+
+		return pets
+	}
 }
